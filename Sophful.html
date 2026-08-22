@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#de99ce" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Sophful" />
+  <title>Sophful</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            soph: {
+              50: '#fdf7fb', 100: '#f8e8f3', 200: '#f0d0e6', 300: '#e4b0d4',
+              400: '#de99ce', 500: '#c97bb8', 600: '#a85e98', 700: '#8a4a7c'
+            }
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body { font-family: Inter, system-ui, sans-serif; background: #fdf7fb; }
+    .tab-bar { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+    .card-enter { animation: up 0.28s ease-out; }
+    @keyframes up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+    .shadow-soft { box-shadow: 0 2px 16px -4px rgba(222,153,206,.22); }
+    .shadow-float { box-shadow: 0 10px 36px -8px rgba(222,153,206,.35); }
+    .progress-bar { transition: width 0.45s cubic-bezier(.4,0,.2,1); }
+    ::-webkit-scrollbar { width: 0; height: 0; }
+  </style>
+</head>
+<body class="bg-soph-50 text-stone-800 min-h-screen antialiased">
+
+  <!-- What's New -->
+  <div id="whatsNew" class="fixed inset-0 z-[80] hidden items-center justify-center p-5 bg-stone-900/40 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl w-full max-w-sm shadow-float overflow-hidden">
+      <div class="bg-soph-400 px-6 pt-8 pb-6 text-center text-white">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-white/20 flex items-center justify-center">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+        </div>
+        <h2 class="text-xl font-bold">What's New</h2>
+        <p class="text-sm text-white/80 mt-1">Sophful v2.2.2</p>
+      </div>
+      <div class="px-6 py-5 space-y-3 text-sm text-stone-600">
+        <div class="flex gap-3"><span class="text-soph-400 font-bold">•</span><span>New Stats tab with fun insights</span></div>
+        <div class="flex gap-3"><span class="text-soph-400 font-bold">•</span><span>Fixed bottom bar (no more weird gap)</span></div>
+        <div class="flex gap-3"><span class="text-soph-400 font-bold">•</span><span>Categories inside every list</span></div>
+        <div class="flex gap-3"><span class="text-soph-400 font-bold">•</span><span>Shuffle + progress bar</span></div>
+        <div class="flex gap-3"><span class="text-soph-400 font-bold">•</span><span>Lots of polish & bug fixes</span></div>
+      </div>
+      <div class="px-6 pb-6">
+        <button id="dismissWhatsNew" class="w-full py-3.5 rounded-xl bg-soph-400 text-white font-semibold shadow-soft">Let's go</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTS -->
+  <div id="screen-lists" class="screen min-h-screen pb-28">
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-soph-100 px-4 pt-12 pb-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-stone-900 tracking-tight">Sophful</h1>
+          <p class="text-xs text-soph-500 font-medium mt-0.5" id="listsSubtitle">Your wishlists</p>
+        </div>
+        <button id="newListBtn" class="w-10 h-10 rounded-full bg-soph-400 text-white flex items-center justify-center shadow-soft active:scale-95 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        </button>
+      </div>
+    </header>
+    <div id="listsContainer" class="px-4 py-5 space-y-3"></div>
+  </div>
+
+  <!-- ITEMS -->
+  <div id="screen-items" class="screen min-h-screen pb-28 hidden">
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-soph-100 px-4 pt-12 pb-3">
+      <div class="flex items-center gap-3 mb-3">
+        <button id="backToLists" class="w-9 h-9 rounded-full bg-soph-50 flex items-center justify-center text-soph-500 shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="flex-1 min-w-0">
+          <h1 class="text-lg font-bold text-stone-900 truncate" id="currentListTitle">All items</h1>
+          <p class="text-[11px] text-soph-500 font-medium" id="currentListCount">0 items</p>
+        </div>
+        <button id="shuffleBtn" class="w-9 h-9 rounded-full bg-soph-50 flex items-center justify-center text-soph-500" title="Random item">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+        <button id="addToListBtn" class="px-3.5 py-2 rounded-full bg-soph-400 text-white text-sm font-semibold shadow-soft">Add</button>
+      </div>
+      <div id="progressWrap" class="mb-3 hidden">
+        <div class="flex justify-between text-[11px] text-stone-400 mb-1">
+          <span id="progressText">0 of 0 got</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="h-1.5 bg-soph-100 rounded-full overflow-hidden">
+          <div id="progressBar" class="progress-bar h-full bg-soph-400 rounded-full" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="flex gap-2 mb-2">
+        <div class="relative flex-1">
+          <select id="categoryFilter" class="w-full appearance-none px-3 py-2.5 pr-8 rounded-xl bg-soph-50 border border-soph-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-soph-200">
+            <option value="">All categories</option>
+          </select>
+          <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-soph-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
+        <select id="statusFilter" class="appearance-none px-3 py-2.5 pr-7 rounded-xl bg-soph-50 border border-soph-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-soph-200">
+          <option value="all">All</option>
+          <option value="wanted">Wanted</option>
+          <option value="got">Got it</option>
+        </select>
+      </div>
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-soph-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input id="searchInput" type="search" placeholder="Search this list..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-soph-50 border border-soph-100 text-sm focus:outline-none focus:ring-2 focus:ring-soph-200" />
+      </div>
+    </header>
+    <div id="itemsGrid" class="px-4 py-4 grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+    <div id="itemsEmpty" class="hidden flex-col items-center justify-center py-16 text-center px-6">
+      <div class="w-16 h-16 rounded-2xl bg-white border border-soph-100 flex items-center justify-center mb-4 shadow-soft">
+        <svg class="w-8 h-8 text-soph-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+      </div>
+      <p class="text-stone-500 text-sm mb-1 font-medium" id="emptyTitle">No items yet</p>
+      <p class="text-stone-400 text-xs mb-4" id="emptySub">Add something you want</p>
+      <button id="emptyAddItem" class="px-5 py-2.5 rounded-full bg-soph-400 text-white text-sm font-semibold">Add first item</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div id="screen-stats" class="screen min-h-screen pb-28 hidden">
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-soph-100 px-4 pt-12 pb-4">
+      <h1 class="text-2xl font-bold text-stone-900">Stats</h1>
+      <p class="text-xs text-soph-500 font-medium mt-0.5">Your wishlist at a glance</p>
+    </header>
+    <div id="statsContent" class="px-4 py-5 space-y-4"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="screen-settings" class="screen min-h-screen pb-28 hidden">
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-soph-100 px-4 pt-12 pb-4">
+      <h1 class="text-2xl font-bold text-stone-900">Settings</h1>
+    </header>
+    <div class="px-4 py-5 space-y-5">
+      <section class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft">
+        <h3 class="text-xs font-semibold text-soph-500 uppercase tracking-wider mb-3">App logo</h3>
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-soph-400 flex items-center justify-center overflow-hidden shadow-soft">
+            <svg id="logoDefault" class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <img id="logoImg" class="w-full h-full object-cover hidden" />
+          </div>
+          <div class="flex-1 space-y-2">
+            <button id="uploadLogoBtn" class="w-full py-2.5 rounded-xl bg-soph-50 border border-soph-100 text-sm font-medium text-soph-600">Upload photo</button>
+            <button id="resetLogoBtn" class="w-full py-1.5 text-xs text-stone-400">Reset</button>
+            <input type="file" id="logoFileInput" accept="image/*" class="hidden" />
+          </div>
+        </div>
+      </section>
+      <section class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft space-y-2">
+        <h3 class="text-xs font-semibold text-soph-500 uppercase tracking-wider mb-2">Backup</h3>
+        <button id="exportBtn" class="w-full py-2.5 rounded-xl bg-soph-50 border border-soph-100 text-sm font-medium text-soph-600">Export backup</button>
+        <button id="importBtn" class="w-full py-2.5 rounded-xl bg-soph-50 border border-soph-100 text-sm font-medium text-soph-600">Import backup</button>
+        <input type="file" id="importFile" accept=".json" class="hidden" />
+      </section>
+      <section class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft">
+        <h3 class="text-xs font-semibold text-soph-500 uppercase tracking-wider mb-2">GitHub updates</h3>
+        <input id="githubUrlInput" type="url" placeholder="raw.githubusercontent.com/.../index.html" class="w-full px-3 py-2.5 rounded-xl bg-soph-50 border border-soph-100 text-sm mb-2" />
+        <button id="checkUpdateBtn" class="w-full py-2.5 rounded-xl bg-soph-50 border border-soph-100 text-sm font-medium text-soph-600">Check for updates</button>
+        <p id="updateStatus" class="text-xs text-stone-400 mt-1.5"></p>
+      </section>
+      <button id="clearAllBtn" class="w-full py-3 rounded-xl bg-rose-50 border border-rose-100 text-sm font-medium text-rose-500">Clear everything</button>
+      <div class="text-center pt-3 space-y-1">
+        <p class="text-[11px] text-stone-300">Sophful · v2.2.2</p>
+        <p class="text-[11px] text-soph-400 font-medium">Creators: your awesome brother mj</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM TAB BAR - balanced 5 slots -->
+  <nav class="tab-bar fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-soph-100">
+    <div class="max-w-lg mx-auto flex items-end justify-between px-1 pt-1.5">
+      <button data-tab="lists" class="tab-btn flex-1 flex flex-col items-center gap-0.5 py-1.5 text-soph-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <span class="text-[10px] font-semibold">Lists</span>
+      </button>
+      <button data-tab="items" class="tab-btn flex-1 flex flex-col items-center gap-0.5 py-1.5 text-stone-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <span class="text-[10px] font-semibold">Items</span>
+      </button>
+      <!-- Centered FAB -->
+      <div class="flex-1 flex justify-center">
+        <button id="fabAdd" class="-mt-5 w-14 h-14 rounded-full bg-soph-400 text-white flex items-center justify-center shadow-float active:scale-95 transition ring-4 ring-white">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        </button>
+      </div>
+      <button data-tab="stats" class="tab-btn flex-1 flex flex-col items-center gap-0.5 py-1.5 text-stone-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span class="text-[10px] font-semibold">Stats</span>
+      </button>
+      <button data-tab="settings" class="tab-btn flex-1 flex flex-col items-center gap-0.5 py-1.5 text-stone-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="text-[10px] font-semibold">Settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Add/Edit Modal -->
+  <div id="itemModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-stone-900/30 backdrop-blur-sm" id="itemBackdrop"></div>
+    <div class="absolute inset-x-0 bottom-0 sm:inset-0 sm:flex sm:items-end sm:justify-center">
+      <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto shadow-float">
+        <div class="sticky top-0 bg-white border-b border-soph-100 px-5 py-4 flex items-center justify-between z-10">
+          <h2 id="itemModalTitle" class="text-lg font-bold">Add item</h2>
+          <button id="closeItemModal" class="w-8 h-8 rounded-full bg-soph-50 flex items-center justify-center text-stone-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form id="itemForm" class="p-5 space-y-4">
+          <div>
+            <label class="text-[11px] font-semibold text-soph-500 uppercase tracking-wider">Product link</label>
+            <div class="flex gap-2 mt-1.5">
+              <input id="urlInput" type="url" required placeholder="Paste Amazon, Temu, Shein link..." class="flex-1 px-3.5 py-3 rounded-xl bg-soph-50 border border-soph-100 text-sm focus:outline-none focus:ring-2 focus:ring-soph-200" />
+              <button type="button" id="fetchBtn" class="px-4 py-3 rounded-xl bg-soph-400 text-white text-sm font-semibold disabled:opacity-50">Fetch</button>
+            </div>
+            <p id="fetchStatus" class="text-xs text-stone-400 mt-1.5 hidden"></p>
+          </div>
+          <div id="previewBox" class="hidden rounded-2xl overflow-hidden border border-soph-100">
+            <img id="previewImg" class="w-full h-40 object-cover bg-soph-50" onerror="this.style.display='none'" />
+            <div class="p-3 bg-soph-50"><p id="previewTitle" class="text-sm font-medium line-clamp-2"></p></div>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-soph-500 uppercase tracking-wider">Title</label>
+            <input id="titleInput" type="text" required class="mt-1.5 w-full px-3.5 py-3 rounded-xl bg-soph-50 border border-soph-100 text-sm focus:outline-none focus:ring-2 focus:ring-soph-200" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] font-semibold text-soph-500 uppercase tracking-wider">Price ($)</label>
+              <input id="priceInput" type="text" inputmode="decimal" placeholder="0.00" class="mt-1.5 w-full px-3.5 py-3 rounded-xl bg-soph-50 border border-soph-100 text-sm focus:outline-none focus:ring-2 focus:ring-soph-200" />
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-soph-500 uppercase tracking-wider">List</label>
+              <select id="listSelect" class="mt-1.5 w-full px-3.5 py-3 rounded-xl bg-soph-50 border border-soph-100 text-sm focus:outline-none focus:ring-2 focus:ring-soph-200 appearance-none"></select>
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-soph-500 uppercase tracking-wider">Category</label>
+            <select id="categorySelect" class="mt-1.5 w-full px-3.5 py-3 rounded-xl bg-soph-50 border border-soph-100 text-sm focus:outline-none focus:ring-2 focus:ring-soph-200 appearance-none"></select>
+            <input id="newCategoryInput" type="text" placeholder="Or type a new category..." class="mt-2 w-full px-3.5 py-2.5 rounded-xl bg-soph-50 border border-soph-100 text-sm focus:outline-none focus:ring-2 focus:ring-soph-200" />
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-soph-500 uppercase tracking-wider">Image URL <span class="text-stone-400 font-normal">(if fetch fails)</span></label>
+            <input id="imageUrlInput" type="url" placeholder="https://..." class="mt-1.5 w-full px-3.5 py-3 rounded-xl bg-soph-50 border border-soph-100 text-sm focus:outline-none focus:ring-2 focus:ring-soph-200" />
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-soph-500 uppercase tracking-wider">Notes</label>
+            <textarea id="notesInput" rows="2" placeholder="Size, color..." class="mt-1.5 w-full px-3.5 py-3 rounded-xl bg-soph-50 border border-soph-100 text-sm focus:outline-none focus:ring-2 focus:ring-soph-200 resize-none"></textarea>
+          </div>
+          <label class="flex items-center gap-2.5">
+            <input id="boughtInput" type="checkbox" class="w-5 h-5 rounded border-soph-200 text-soph-400" />
+            <span class="text-sm font-medium text-stone-600">Already bought / received</span>
+          </label>
+          <button type="submit" class="w-full py-3.5 rounded-xl bg-soph-400 hover:bg-soph-500 text-white font-semibold shadow-soft">Save item</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- New List Modal -->
+  <div id="listModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-stone-900/30 backdrop-blur-sm" id="listBackdrop"></div>
+    <div class="absolute inset-x-0 bottom-0 sm:inset-0 sm:flex sm:items-center sm:justify-center p-4">
+      <div class="bg-white rounded-3xl w-full sm:max-w-sm p-5 shadow-float">
+        <h2 class="text-lg font-bold mb-4">New list</h2>
+        <input id="listNameInput" type="text" placeholder="e.g. Christmas, Birthday..." class="w-full px-4 py-3 rounded-xl bg-soph-50 border border-soph-100 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-soph-200" />
+        <div class="flex gap-3">
+          <button id="cancelListBtn" class="flex-1 py-3 rounded-xl bg-soph-50 text-stone-600 font-medium">Cancel</button>
+          <button id="saveListBtn" class="flex-1 py-3 rounded-xl bg-soph-400 text-white font-semibold">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Random pick -->
+  <div id="randomModal" class="fixed inset-0 z-50 hidden items-center justify-center p-5 bg-stone-900/40 backdrop-blur-sm">
+    <div class="bg-white rounded-3xl w-full max-w-xs p-5 shadow-float text-center">
+      <p class="text-xs text-soph-500 font-semibold uppercase tracking-wider mb-2">Random pick</p>
+      <div id="randomImgWrap" class="w-full aspect-square rounded-2xl overflow-hidden bg-soph-50 mb-3 hidden">
+        <img id="randomImg" class="w-full h-full object-cover" />
+      </div>
+      <h3 id="randomTitle" class="font-bold text-stone-900 mb-1"></h3>
+      <p id="randomPrice" class="text-soph-500 font-semibold mb-4"></p>
+      <div class="flex gap-2">
+        <button id="randomClose" class="flex-1 py-2.5 rounded-xl bg-soph-50 text-stone-600 text-sm font-medium">Close</button>
+        <a id="randomOpen" href="#" target="_blank" class="flex-1 py-2.5 rounded-xl bg-soph-400 text-white text-sm font-semibold text-center">Open</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-full bg-stone-900 text-white text-sm font-medium opacity-0 translate-y-2 pointer-events-none transition-all duration-300 max-w-[90vw] text-center"></div>
+
+  <script>
+    const APP_VERSION = '2.2.2';
+    const DEFAULT_CATS = ['Clothes','Shoes','Accessories','Beauty','Home','Other'];
+    let data = JSON.parse(localStorage.getItem('sophful_v2') || 'null') || {
+      lists: [{ id: 'default', name: 'My Wishlist', createdAt: Date.now() }],
+      items: [],
+      categories: [...DEFAULT_CATS]
+    };
+    if (!data.categories) data.categories = [...DEFAULT_CATS];
+    if (!data.lists || !data.lists.length) data.lists = [{ id: 'default', name: 'My Wishlist', createdAt: Date.now() }];
+    if (!Array.isArray(data.items)) data.items = [];
+
+    let currentListId = null;
+    let editingId = null;
+    let customLogo = localStorage.getItem('sophful_logo') || null;
+    let githubUrl = localStorage.getItem('sophful_github') || 'https://raw.githubusercontent.com/mmaloney0150/Sophful/main/Sophful.html';
+    let searchQ = '';
+    let catFilter = '';
+    let statusFilter = 'all';
+
+    const $ = id => document.getElementById(id);
+
+    function save() {
+      try {
+        localStorage.setItem('sophful_v2', JSON.stringify(data));
+      } catch (e) {
+        toast('Storage full — try exporting then clearing old items');
+      }
+      renderLists();
+      if (!$('screen-items').classList.contains('hidden')) renderItems();
+      if (!$('screen-stats').classList.contains('hidden')) renderStats();
+    }
+
+    function toast(msg) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+      clearTimeout(t._t);
+      t._t = setTimeout(() => t.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none'), 2400);
+    }
+
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+    function formatPrice(p) {
+      if (p == null || p === '') return null;
+      const n = parseFloat(String(p).replace(/[^0-9.]/g, ''));
+      return isNaN(n) ? null : n.toFixed(2);
+    }
+    function getStore(url) {
+      try {
+        const h = new URL(url).hostname.replace('www.', '').toLowerCase();
+        if (h.includes('amazon')) return 'Amazon';
+        if (h.includes('temu')) return 'Temu';
+        if (h.includes('shein')) return 'Shein';
+        if (h.includes('ebay')) return 'eBay';
+        if (h.includes('walmart')) return 'Walmart';
+        if (h.includes('target')) return 'Target';
+        if (h.includes('nike')) return 'Nike';
+        if (h.includes('sephora')) return 'Sephora';
+        if (h.includes('ulta')) return 'Ulta';
+        return h.split('.')[0].replace(/^\w/, c => c.toUpperCase());
+      } catch { return 'Link'; }
+    }
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // What's New
+    function checkWhatsNew() {
+      const seen = localStorage.getItem('sophful_seen_version');
+      if (seen !== APP_VERSION) {
+        $('whatsNew').classList.remove('hidden');
+        $('whatsNew').classList.add('flex');
+      }
+    }
+    $('dismissWhatsNew').addEventListener('click', () => {
+      localStorage.setItem('sophful_seen_version', APP_VERSION);
+      $('whatsNew').classList.add('hidden');
+      $('whatsNew').classList.remove('flex');
+    });
+
+    // Tabs
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+      const el = $('screen-' + name);
+      if (el) el.classList.remove('hidden');
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        const active = b.dataset.tab === name;
+        b.classList.toggle('text-soph-400', active);
+        b.classList.toggle('text-stone-400', !active);
+      });
+      if (name === 'lists') renderLists();
+      if (name === 'items') {
+        if (!currentListId) currentListId = 'all';
+        renderItems();
+      }
+      if (name === 'stats') renderStats();
+      if (name === 'settings') {
+        $('githubUrlInput').value = githubUrl;
+        applyLogo();
+      }
+    }
+    document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => showScreen(b.dataset.tab)));
+    $('fabAdd').addEventListener('click', () => openItemModal());
+
+    // Lists
+    function renderLists() {
+      const container = $('listsContainer');
+      const total = data.items.length;
+      const got = data.items.filter(i => i.bought).length;
+      $('listsSubtitle').textContent = `${data.lists.length} lists · ${total} items` + (got ? ` · ${got} got` : '');
+
+      let html = `
+        <button data-open-list="all" class="w-full text-left bg-white rounded-2xl border border-soph-100 p-4 shadow-soft active:scale-[0.98] transition flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-soph-100 flex items-center justify-center text-soph-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-stone-900">All items</p>
+            <p class="text-xs text-stone-400">${total} items</p>
+          </div>
+          <svg class="w-5 h-5 text-soph-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      `;
+      data.lists.forEach(list => {
+        const items = data.items.filter(i => i.listId === list.id);
+        const count = items.length;
+        const gotCount = items.filter(i => i.bought).length;
+        html += `
+          <button data-open-list="${list.id}" class="w-full text-left bg-white rounded-2xl border border-soph-100 p-4 shadow-soft active:scale-[0.98] transition flex items-center gap-4 group">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-soph-300 to-soph-400 flex items-center justify-center text-white font-bold text-lg shrink-0">
+              ${escapeHtml((list.name || '?').charAt(0).toUpperCase())}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-stone-900 truncate">${escapeHtml(list.name)}</p>
+              <p class="text-xs text-stone-400">${count} items${gotCount ? ` · ${gotCount} got` : ''}</p>
+            </div>
+            <button data-delete-list="${list.id}" class="p-2 text-stone-300 hover:text-rose-400 opacity-0 group-hover:opacity-100 sm:opacity-100 transition shrink-0" onclick="event.stopPropagation()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+            <svg class="w-5 h-5 text-soph-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    $('listsContainer').addEventListener('click', e => {
+      const open = e.target.closest('[data-open-list]');
+      const del = e.target.closest('[data-delete-list]');
+      if (del) {
+        e.stopPropagation();
+        if (confirm('Delete this list? Items stay in All items.')) {
+          const id = del.dataset.deleteList;
+          data.items.forEach(i => { if (i.listId === id) i.listId = null; });
+          data.lists = data.lists.filter(l => l.id !== id);
+          save();
+          toast('List deleted');
+        }
+        return;
+      }
+      if (open) {
+        currentListId = open.dataset.openList;
+        catFilter = '';
+        statusFilter = 'all';
+        searchQ = '';
+        if ($('searchInput')) $('searchInput').value = '';
+        if ($('categoryFilter')) $('categoryFilter').value = '';
+        if ($('statusFilter')) $('statusFilter').value = 'all';
+        showScreen('items');
+      }
+    });
+
+    $('newListBtn').addEventListener('click', () => {
+      $('listNameInput').value = '';
+      $('listModal').classList.remove('hidden');
+      setTimeout(() => $('listNameInput').focus(), 50);
+    });
+    $('cancelListBtn').addEventListener('click', () => $('listModal').classList.add('hidden'));
+    $('listBackdrop').addEventListener('click', () => $('listModal').classList.add('hidden'));
+    $('saveListBtn').addEventListener('click', () => {
+      const name = $('listNameInput').value.trim();
+      if (!name) return;
+      data.lists.push({ id: uid(), name, createdAt: Date.now() });
+      save();
+      $('listModal').classList.add('hidden');
+      toast('List created');
+    });
+    $('listNameInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') $('saveListBtn').click();
+    });
+
+    // Categories
+    function updateCategoryFilters() {
+      const cats = [...new Set([...(data.categories || []), ...data.items.map(i => i.category).filter(Boolean)])].filter(Boolean).sort();
+      data.categories = cats.length ? cats : [...DEFAULT_CATS];
+      const sel = $('categoryFilter');
+      if (sel) {
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">All categories</option>' + data.categories.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        if (data.categories.includes(cur)) sel.value = cur;
+      }
+      const catSel = $('categorySelect');
+      if (catSel) {
+        catSel.innerHTML = data.categories.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      }
+    }
+
+    // Items
+    function renderItems() {
+      updateCategoryFilters();
+      const isAll = currentListId === 'all';
+      const list = isAll ? null : data.lists.find(l => l.id === currentListId);
+      $('currentListTitle').textContent = isAll ? 'All items' : (list?.name || 'List');
+
+      let items = isAll ? [...data.items] : data.items.filter(i => i.listId === currentListId);
+      const totalInList = items.length;
+      const gotInList = items.filter(i => i.bought).length;
+
+      if (totalInList > 0) {
+        $('progressWrap').classList.remove('hidden');
+        const pct = Math.round((gotInList / totalInList) * 100);
+        $('progressText').textContent = `${gotInList} of ${totalInList} got`;
+        $('progressPct').textContent = pct + '%';
+        $('progressBar').style.width = pct + '%';
+      } else {
+        $('progressWrap').classList.add('hidden');
+      }
+
+      if (statusFilter === 'wanted') items = items.filter(i => !i.bought);
+      if (statusFilter === 'got') items = items.filter(i => i.bought);
+      if (catFilter) items = items.filter(i => i.category === catFilter);
+      if (searchQ) {
+        const q = searchQ.toLowerCase();
+        items = items.filter(i =>
+          (i.title || '').toLowerCase().includes(q) ||
+          (i.notes || '').toLowerCase().includes(q) ||
+          (i.store || '').toLowerCase().includes(q) ||
+          (i.category || '').toLowerCase().includes(q)
+        );
+      }
+      items.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+      $('currentListCount').textContent = items.length + (items.length === 1 ? ' item' : ' items');
+
+      if (!items.length) {
+        $('itemsGrid').innerHTML = '';
+        $('itemsEmpty').classList.remove('hidden');
+        $('itemsEmpty').classList.add('flex');
+        $('emptyTitle').textContent = totalInList ? 'No matches' : 'No items yet';
+        $('emptySub').textContent = totalInList ? 'Try another category or search' : 'Add something you want';
+        return;
+      }
+      $('itemsEmpty').classList.add('hidden');
+      $('itemsEmpty').classList.remove('flex');
+
+      $('itemsGrid').innerHTML = items.map(item => {
+        const price = formatPrice(item.price);
+        return `
+          <article class="card-enter bg-white rounded-2xl border border-soph-100 overflow-hidden shadow-soft ${item.bought ? 'opacity-60' : ''}">
+            <div class="relative aspect-[4/3] bg-soph-50">
+              ${item.image
+                ? `<img src="${escapeHtml(item.image)}" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center\\'><svg class=\\'w-10 h-10 text-soph-200\\' fill=\\'none\\' viewBox=\\'0 0 24 24\\' stroke=\\'currentColor\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'1.5\\' d=\\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\\'/></svg></div>'" />`
+                : `<div class="w-full h-full flex items-center justify-center"><svg class="w-10 h-10 text-soph-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`
+              }
+              ${item.bought ? `<span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[10px] font-bold">GOT IT</span>` : ''}
+              ${item.category ? `<span class="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-white/90 text-soph-500 text-[10px] font-semibold shadow-sm">${escapeHtml(item.category)}</span>` : ''}
+            </div>
+            <div class="p-3.5">
+              <h3 class="font-semibold text-sm leading-snug line-clamp-2 ${item.bought ? 'line-through text-stone-400' : 'text-stone-900'}">${escapeHtml(item.title)}</h3>
+              <div class="flex items-center gap-2 mt-1.5 text-[11px] flex-wrap">
+                <span class="px-1.5 py-0.5 rounded bg-soph-50 text-soph-500 font-medium">${escapeHtml(item.store || 'Link')}</span>
+                ${price ? `<span class="font-semibold text-soph-500">$${price}</span>` : ''}
+              </div>
+              ${item.notes ? `<p class="text-[11px] text-stone-400 mt-1.5 line-clamp-1">${escapeHtml(item.notes)}</p>` : ''}
+              <div class="flex gap-2 mt-3">
+                <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="flex-1 text-center py-2 rounded-lg bg-soph-50 text-soph-600 text-xs font-semibold">Open</a>
+                <button data-edit="${item.id}" class="px-3 py-2 rounded-lg border border-soph-100 text-xs font-medium text-stone-500">Edit</button>
+                <button data-toggle="${item.id}" class="px-3 py-2 rounded-lg border border-soph-100 text-xs font-medium ${item.bought ? 'text-emerald-600' : 'text-soph-400'}">${item.bought ? 'Undo' : 'Got it'}</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    $('backToLists').addEventListener('click', () => showScreen('lists'));
+    $('addToListBtn').addEventListener('click', () => openItemModal());
+    $('emptyAddItem').addEventListener('click', () => openItemModal());
+    $('searchInput').addEventListener('input', e => { searchQ = e.target.value.trim(); renderItems(); });
+    $('categoryFilter').addEventListener('change', e => { catFilter = e.target.value; renderItems(); });
+    $('statusFilter').addEventListener('change', e => { statusFilter = e.target.value; renderItems(); });
+
+    $('shuffleBtn').addEventListener('click', () => {
+      let pool = currentListId === 'all'
+        ? data.items.filter(i => !i.bought)
+        : data.items.filter(i => i.listId === currentListId && !i.bought);
+      if (catFilter) pool = pool.filter(i => i.category === catFilter);
+      if (!pool.length) { toast('No wanted items to pick'); return; }
+      const item = pool[Math.floor(Math.random() * pool.length)];
+      $('randomTitle').textContent = item.title || 'Item';
+      $('randomPrice').textContent = item.price ? '$' + formatPrice(item.price) : '';
+      $('randomOpen').href = item.url || '#';
+      if (item.image) {
+        $('randomImg').src = item.image;
+        $('randomImgWrap').classList.remove('hidden');
+      } else {
+        $('randomImgWrap').classList.add('hidden');
+      }
+      $('randomModal').classList.remove('hidden');
+      $('randomModal').classList.add('flex');
+    });
+    $('randomClose').addEventListener('click', () => {
+      $('randomModal').classList.add('hidden');
+      $('randomModal').classList.remove('flex');
+    });
+
+    $('itemsGrid').addEventListener('click', e => {
+      const edit = e.target.closest('[data-edit]');
+      const toggle = e.target.closest('[data-toggle]');
+      if (edit) {
+        const item = data.items.find(i => i.id === edit.dataset.edit);
+        if (item) openItemModal(item);
+      }
+      if (toggle) {
+        const item = data.items.find(i => i.id === toggle.dataset.toggle);
+        if (item) {
+          item.bought = !item.bought;
+          save();
+          toast(item.bought ? 'Marked as got it' : 'Back on list');
+        }
+      }
+    });
+
+    // Stats
+    function renderStats() {
+      const items = data.items;
+      const total = items.length;
+      const got = items.filter(i => i.bought).length;
+      const wanted = total - got;
+      let totalValue = 0;
+      let wantedValue = 0;
+      items.forEach(i => {
+        const p = parseFloat(formatPrice(i.price) || 0);
+        totalValue += p;
+        if (!i.bought) wantedValue += p;
+      });
+      const byCat = {};
+      items.forEach(i => {
+        const c = i.category || 'Other';
+        byCat[c] = (byCat[c] || 0) + 1;
+      });
+      const byStore = {};
+      items.forEach(i => {
+        const s = i.store || 'Other';
+        byStore[s] = (byStore[s] || 0) + 1;
+      });
+      const topCats = Object.entries(byCat).sort((a,b) => b[1]-a[1]).slice(0, 5);
+      const topStores = Object.entries(byStore).sort((a,b) => b[1]-a[1]).slice(0, 4);
+
+      let html = `
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft text-center">
+            <p class="text-2xl font-bold text-soph-500">${total}</p>
+            <p class="text-[11px] text-stone-400 font-medium mt-0.5">Total items</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft text-center">
+            <p class="text-2xl font-bold text-emerald-500">${got}</p>
+            <p class="text-[11px] text-stone-400 font-medium mt-0.5">Got it</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft text-center">
+            <p class="text-2xl font-bold text-stone-700">${wanted}</p>
+            <p class="text-[11px] text-stone-400 font-medium mt-0.5">Still wanted</p>
+          </div>
+          <div class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft text-center">
+            <p class="text-2xl font-bold text-soph-500">$${wantedValue.toFixed(0)}</p>
+            <p class="text-[11px] text-stone-400 font-medium mt-0.5">Wanted value</p>
+          </div>
+        </div>
+      `;
+
+      if (total > 0) {
+        const pct = Math.round((got / total) * 100);
+        html += `
+          <div class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft">
+            <div class="flex justify-between text-sm mb-2">
+              <span class="font-medium text-stone-700">Overall progress</span>
+              <span class="text-soph-500 font-semibold">${pct}%</span>
+            </div>
+            <div class="h-2.5 bg-soph-100 rounded-full overflow-hidden">
+              <div class="progress-bar h-full bg-soph-400 rounded-full" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (topCats.length) {
+        html += `<div class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft">
+          <h3 class="text-xs font-semibold text-soph-500 uppercase tracking-wider mb-3">Top categories</h3>
+          <div class="space-y-2">`;
+        topCats.forEach(([name, count]) => {
+          const w = total ? Math.round((count / total) * 100) : 0;
+          html += `
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span class="font-medium text-stone-700">${escapeHtml(name)}</span>
+                <span class="text-stone-400">${count}</span>
+              </div>
+              <div class="h-1.5 bg-soph-50 rounded-full overflow-hidden">
+                <div class="h-full bg-soph-300 rounded-full" style="width:${w}%"></div>
+              </div>
+            </div>`;
+        });
+        html += `</div></div>`;
+      }
+
+      if (topStores.length) {
+        html += `<div class="bg-white rounded-2xl border border-soph-100 p-4 shadow-soft">
+          <h3 class="text-xs font-semibold text-soph-500 uppercase tracking-wider mb-3">Stores</h3>
+          <div class="flex flex-wrap gap-2">`;
+        topStores.forEach(([name, count]) => {
+          html += `<span class="px-3 py-1.5 rounded-full bg-soph-50 text-soph-600 text-xs font-medium">${escapeHtml(name)} · ${count}</span>`;
+        });
+        html += `</div></div>`;
+      }
+
+      if (!total) {
+        html += `<div class="text-center py-10 text-stone-400 text-sm">Add some items to see stats</div>`;
+      }
+
+      $('statsContent').innerHTML = html;
+    }
+
+    // Item modal
+    function openItemModal(item = null) {
+      editingId = item ? item.id : null;
+      $('itemModalTitle').textContent = item ? 'Edit item' : 'Add item';
+      $('urlInput').value = item?.url || '';
+      $('titleInput').value = item?.title || '';
+      $('priceInput').value = item?.price || '';
+      $('notesInput').value = item?.notes || '';
+      $('imageUrlInput').value = item?.image || '';
+      $('boughtInput').checked = !!item?.bought;
+      $('newCategoryInput').value = '';
+      $('fetchStatus').classList.add('hidden');
+      $('previewBox').classList.add('hidden');
+
+      updateCategoryFilters();
+      const listSel = $('listSelect');
+      listSel.innerHTML = data.lists.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join('');
+      if (item?.listId && data.lists.some(l => l.id === item.listId)) listSel.value = item.listId;
+      else if (currentListId && currentListId !== 'all' && data.lists.some(l => l.id === currentListId)) listSel.value = currentListId;
+
+      if (item?.category && data.categories.includes(item.category)) $('categorySelect').value = item.category;
+      else if (data.categories.length) $('categorySelect').value = data.categories[0];
+
+      if (item?.image) {
+        $('previewImg').src = item.image;
+        $('previewTitle').textContent = item.title || '';
+        $('previewBox').classList.remove('hidden');
+      }
+
+      $('itemModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeItemModal() {
+      $('itemModal').classList.add('hidden');
+      document.body.style.overflow = '';
+      editingId = null;
+    }
+    $('closeItemModal').addEventListener('click', closeItemModal);
+    $('itemBackdrop').addEventListener('click', closeItemModal);
+
+    async function fetchMeta() {
+      const url = $('urlInput').value.trim();
+      if (!url) return;
+      const btn = $('fetchBtn');
+      btn.disabled = true;
+      btn.textContent = '...';
+      const status = $('fetchStatus');
+      status.classList.remove('hidden');
+      status.textContent = 'Fetching details...';
+      status.className = 'text-xs text-soph-400 mt-1.5';
+      try {
+        const res = await fetch(`https://api.ogfetch.com/preview?url=${encodeURIComponent(url)}`);
+        const d = await res.json();
+        if (d.error && !d.title) throw new Error();
+        if (d.title) $('titleInput').value = d.title;
+        let price = null;
+        if (d.price) price = formatPrice(d.price);
+        if (!price && d.description) {
+          const m = d.description.match(/\$\s*(\d+(?:\.\d{1,2})?)/);
+          if (m) price = m[1];
+        }
+        if (price) $('priceInput').value = price;
+        if (d.image) {
+          $('previewImg').src = d.image;
+          $('previewImg').style.display = '';
+          $('imageUrlInput').value = d.image;
+          $('previewBox').classList.remove('hidden');
+        }
+        $('previewTitle').textContent = d.title || '';
+        const found = [];
+        if (d.image) found.push('photo');
+        if (d.title) found.push('title');
+        if (price) found.push('price');
+        status.textContent = found.length ? `Found: ${found.join(', ')}. Edit if needed.` : 'Limited data — fill in manually or paste image URL.';
+        status.className = 'text-xs text-emerald-500 mt-1.5';
+        toast(found.length ? 'Details loaded' : 'Limited data');
+      } catch {
+        status.textContent = 'Auto-fetch limited. Enter title/price and paste image URL.';
+        status.className = 'text-xs text-amber-500 mt-1.5';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Fetch';
+      }
+    }
+    $('fetchBtn').addEventListener('click', fetchMeta);
+    $('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fetchMeta(); } });
+
+    $('itemForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const url = $('urlInput').value.trim();
+      const title = $('titleInput').value.trim();
+      if (!url || !title) return;
+
+      let category = $('categorySelect').value;
+      const newCat = $('newCategoryInput').value.trim();
+      if (newCat) {
+        category = newCat;
+        if (!data.categories.includes(newCat)) data.categories.push(newCat);
+      }
+
+      let image = $('imageUrlInput').value.trim() || '';
+      if (!image && $('previewImg').src && $('previewImg').src.startsWith('http')) image = $('previewImg').src;
+
+      const payload = {
+        url, title,
+        price: formatPrice($('priceInput').value),
+        listId: $('listSelect').value || null,
+        category: category || 'Other',
+        notes: $('notesInput').value.trim(),
+        bought: $('boughtInput').checked,
+        image: image.startsWith('http') ? image : (editingId ? (data.items.find(i => i.id === editingId)?.image || '') : ''),
+        store: getStore(url),
+        addedAt: editingId ? (data.items.find(i => i.id === editingId)?.addedAt || Date.now()) : Date.now()
+      };
+
+      if (editingId) {
+        const idx = data.items.findIndex(i => i.id === editingId);
+        if (idx >= 0) data.items[idx] = { ...data.items[idx], ...payload };
+        toast('Updated');
+      } else {
+        data.items.push({ id: uid(), ...payload });
+        toast('Added');
+      }
+      save();
+      closeItemModal();
+      if ($('screen-items').classList.contains('hidden') && $('screen-lists').classList.contains('hidden') === false) {
+        // stay on lists
+      } else {
+        showScreen('items');
+      }
+    });
+
+    // Logo
+    function applyLogo() {
+      if (customLogo) {
+        $('logoDefault')?.classList.add('hidden');
+        if ($('logoImg')) {
+          $('logoImg').src = customLogo;
+          $('logoImg').classList.remove('hidden');
+        }
+      } else {
+        $('logoDefault')?.classList.remove('hidden');
+        if ($('logoImg')) $('logoImg').classList.add('hidden');
+      }
+    }
+    $('uploadLogoBtn').addEventListener('click', () => $('logoFileInput').click());
+    $('logoFileInput').addEventListener('change', e => {
+      const f = e.target.files[0];
+      if (!f || f.size > 2e6) { toast('Max 2MB'); return; }
+      const r = new FileReader();
+      r.onload = ev => { customLogo = ev.target.result; localStorage.setItem('sophful_logo', customLogo); applyLogo(); toast('Logo updated'); };
+      r.readAsDataURL(f);
+    });
+    $('resetLogoBtn').addEventListener('click', () => { customLogo = null; localStorage.removeItem('sophful_logo'); applyLogo(); toast('Reset'); });
+
+    // Backup
+    $('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify({ ...data, logo: customLogo, version: APP_VERSION }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `sophful-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      toast('Exported');
+    });
+    $('importBtn').addEventListener('click', () => $('importFile').click());
+    $('importFile').addEventListener('change', e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        try {
+          const d = JSON.parse(ev.target.result);
+          if (d.lists && d.items) {
+            data = { lists: d.lists, items: d.items, categories: d.categories || DEFAULT_CATS };
+            if (d.logo) { customLogo = d.logo; localStorage.setItem('sophful_logo', d.logo); }
+            save();
+            toast('Imported');
+          } else toast('Invalid backup');
+        } catch { toast('Invalid file'); }
+      };
+      r.readAsText(f);
+    });
+    $('checkUpdateBtn').addEventListener('click', async () => {
+      const url = $('githubUrlInput').value.trim();
+      if (!url) return;
+      githubUrl = url;
+      localStorage.setItem('sophful_github', url);
+      $('updateStatus').textContent = 'Checking...';
+      try {
+        const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+        const text = await res.text();
+        const m = text.match(/APP_VERSION\s*=\s*['"]([\d.]+)['"]/);
+        if (m && m[1] !== APP_VERSION) {
+          $('updateStatus').textContent = `Update available (v${m[1]}). Open the link and save the new file.`;
+        } else {
+          $('updateStatus').textContent = m ? `Up to date (v${APP_VERSION})` : 'File reachable.';
+        }
+      } catch {
+        $('updateStatus').textContent = 'Could not reach URL.';
+      }
+    });
+    $('clearAllBtn').addEventListener('click', () => {
+      if (confirm('Delete all lists and items?')) {
+        data = { lists: [{ id: 'default', name: 'My Wishlist', createdAt: Date.now() }], items: [], categories: [...DEFAULT_CATS] };
+        save();
+        toast('Cleared');
+        showScreen('lists');
+      }
+    });
+
+    // Auto update check (no paste needed)
+    async function autoCheckUpdate() {
+      const url = githubUrl;
+      if (!url) return;
+      try {
+        const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+        if (!res.ok) return;
+        const text = await res.text();
+        const m = text.match(/APP_VERSION\s*=\s*['"]([\d.]+)['"]/);
+        if (m && m[1] !== APP_VERSION) {
+          // show a simple banner
+          const banner = document.createElement('div');
+          banner.id = 'updateBanner';
+          banner.className = 'fixed top-0 inset-x-0 z-[70] bg-soph-400 text-white text-center text-sm font-medium py-2.5 px-4';
+          banner.innerHTML = 'New version available · <button id="applyUpdateBtn" class="underline font-semibold ml-1">Update now</button>';
+          document.body.prepend(banner);
+          document.getElementById('applyUpdateBtn').onclick = () => {
+            window.location.href = url;
+          };
+        }
+      } catch (e) {}
+    }
+
+    // Init
+    applyLogo();
+    checkWhatsNew();
+    showScreen('lists');
+    setTimeout(autoCheckUpdate, 1500);
+  </script>
+</body>
+</html>
